@@ -1,0 +1,21 @@
+#################
+## MATLAB Autosave Files
+#################
+*.asv
+
+
+############
+## Windows
+############
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+
+############
+## Mac
+############
+.DS_Store
