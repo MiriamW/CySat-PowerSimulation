@@ -1,8 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% CySat power drain simulation
-% This script will calculate the power drain experienced by the satelite
-% over a given amount of time by determining which systems are running at
-% what time
+% CySat power system simulation
+% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all;
 close all;
@@ -37,34 +35,6 @@ global FOOTPRINT_SIZE;
 global SATELLITE_SPEED;       
        SATELLITE_SPEED = 7.7; % 7.7 km/s
 
-
-%% Miscellaneous variables used in other places throughout the script
-
-% Array containing the power output of each side
-%
-% Column 1 = Wattage per cell
-% Column 2 = Cells per side
-% Column 3 = Total wattage of side
-solarArray = [2.017, 1;     % Side 1 (Left of diagnostics panel when viewed)
-              0.737, 6;     % Side 2 (Diagnostics Port)
-              2.017, 1;     % Side 3 (Right of diagnostics panel when viewed)
-              2.017, 1;     % Side 4 (Opposite Diagnostics Port)
-              0.737, 6;     % Side 5 (Top)
-              2.017, 1];    % Side 6 (Bottom)
-solarArray(:,3) = solarArray(:,1).*solarArray(:,2);
-
-% Angular position of the center of the diagnostic panel of the satellite
-% Assume the satellite is sitting with top up and a right-handed coordinate
-% system has been superimposed over it.
-%
-% Column 1 = Position in the XY Plane
-% Column 2 = Position in the XZ Plane
-angularPosition = [0, 0];
-
-% The speed at which the panel is rotating (same column order as above)
-angularSpeed = [0, 0];
-
-
 %% Construct the orbit data information
 fprintf('Gathering Orbit Data...');
 % Prompt the user for the location of the orbit data
@@ -93,13 +63,13 @@ while ischar(line)
             case 'semiAxis'
                 orbitData.semiAxis = str2double(data{2});
             case 'period'
-                orbitData.period = str2double(data{2});
+                orbitData.period = str2double(data{2})/60;
             case 'lightTime'
-                orbitData.lightTime = str2double(data{2});
+                orbitData.lightTime = str2double(data{2})/60;
             case 'lightPercentage'
                 orbitData.lightPercentage = str2double(data{2});
             case 'coverageTime'
-                orbitData.coverageTime = str2double(data{2});
+                orbitData.coverageTime = str2double(data{2})/60;
             otherwise
                 error('Unknown orbit information identifier!');
         end
@@ -112,9 +82,67 @@ orbitData.darkTime = orbitData.period - orbitData.lightTime;
 fprintf('Complete\n');
 
 
-%% Construct the timing structure (to say how often things run)
-% First 
-      
+
+%% Miscellaneous variables used in other places throughout the script
+
+% Angular position of the center of the diagnostic panel of the satellite
+% Assume the satellite is sitting with top up and a right-handed coordinate
+% system has been superimposed over it.
+%
+% Column 1 = Position in the XY Plane
+% Column 2 = Position in the XZ Plane
+angularPosition = [0, 0];
+
+% The speed at which the panel is rotating (same column order as above)
+angularSpeed = [0, 0];
+
+% Array containing the power output of each side
+%
+% Column 1 = Wattage per cell
+% Column 2 = Cells per side
+% Column 3 = Total wattage of side
+solarArray = [2.017, 1;     % Side 1 (Left of diagnostics panel when viewed)
+              0.737, 6;     % Side 2 (Diagnostics Port)
+              2.017, 1;     % Side 3 (Right of diagnostics panel when viewed)
+              2.017, 1;     % Side 4 (Opposite Diagnostics Port)
+              0.737, 6;     % Side 5 (Top)
+              2.017, 1];    % Side 6 (Bottom)
+solarArray(:,3) = solarArray(:,1).*solarArray(:,2);
+
+% Column 1 = Voltage
+% Column 2 = Current Draw
+% Column 3 = Power Draw
+powerDraws.processing = [5.5, 5E-4;     % Motherboard
+                         3.3, 2E-2];    % Processor
+powerDraws.processing(:,3) = powerDraws.processing(:,1).*powerDraws.processing(:,2);
+
+powerDraws.power = [0, 0, 0.022;        % EPS in sunlight
+                    0, 0, 0.044];       % EPS in darkness
+
+powerDraws.communications = [3.30, 0.10;    % Radio in receive mode
+                             7.06, 1.31;    % Radio transmitting normal power
+                             7.06, 1.31];   % Radio transmitting a beacon
+powerDraws.communications(:,3) = powerDraws.communications(:,1).*powerDraws.communications(:,2);
+
+powerDraws.payloads = [3.3, 0.03;   % Radiometers
+                       3.3, 0.09];  % Camera
+powerDraws.payloads(:,3) = powerDraws.payloads(:,1).*powerDraws.payloads(:,2);
+
+% These rows must be in the same order as their listing in the powerDraws
+% structure
+%
+% Column 1 = Activation Period (or -1 if it is special)
+% Column 2 = Activation Duration
+powerTiming.processing = [orbitData.period, 1;      % Always on
+                          orbitData.period, 1];     % Always on
+powerTiming.power = [-1, 0;     % This is on when in sunlight, the logic happens later on
+                     -1, 0];    % This is on when in darkness, the logic happens later on
+powerTiming.communications = [orbitData.period, 1;  % Always on
+                              -1, 0;                % This is on during coverage times, the logic happens later on
+                              418, 2];              % The beacon
+powerTiming.payloads = [FOOTPRINT_SIZE*(1/SATELLITE_SPEED), 2;  % Radiometer
+                        FOOTPRINT_SIZE*(1/SATELLITE_SPEED), 2]; % For now just assume it occurs with the radiometer
+
 
 %% Compute the power draws for the various systems
 fprintf('Computing Power Draws...');
