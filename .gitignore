@@ -2,7 +2,7 @@
 ## MATLAB Autosave Files
 #################
 *.asv
-
+*.m~
 
 ############
 ## Windows

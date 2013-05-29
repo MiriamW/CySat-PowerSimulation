@@ -1,33 +1,19 @@
-function [power_draws com_beacon_interval com_beacon_length] = PowerCalculations(orbit, display)
+function [power_draws com_beacon_interval com_beacon_length] = PowerCalculations(orbitData, display)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Orbit Information
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Construct the timing structure (how often things run)
 
-switch(orbit)
-    case 1
-        orbit_name = 'Orbit 1';
-        orbit_period = 90; % Minutes
-        orbit_light_time = 49; % Minutes
-        orbit_coverage_time = 10; % Minutes
-    case 2
-        orbit_name = 'Orbit 2';
-        orbit_period = 103; % Minutes
-        orbit_light_time = 66; % Minutes
-        orbit_coverage_time = 23; % Minutes
-    case 4
-        orbit_name = 'Orbit 4';
-        orbit_period = 97; % Minutes
-        orbit_light_time = 97; % Minutes
-        orbit_coverage_time = 13; % Minutes
-end
+timing.radiometer = {FOOTPRINT_SIZE*(1/SATELLITE_SPEED) 3 'b'};
 
 orbit_rad_runs = floor(orbit_period/(209/60));  % Minutes
-orbit_dark_time = orbit_period - orbit_light_time; % Minutes
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Electrical Characteristics
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Construct the array holding the charging information
+
+
+%% Construct the electrical characteristics structure
+
+powerChars.motherboard = {'mb active' 5.5 500E-6};
+powerChars.motherboard = {'mb sleep' 5.5 5E-6}
+powerChars.processor = {3.3 20E-3 100E-9}
 
 % Motherboard Characteristics
 mb_Vcc = 5.5;
