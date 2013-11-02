@@ -42,12 +42,12 @@ ppm_Isleep = 100E-9;    % 100 nanoWatts
 ppm_runtime = 1; % Full hour
 
 % Communications Characteristics
-com_downlink_Vcc = 7.4;
+com_downlink_Vcc = 7.06;
 com_downlink_Vtyp = 3.3;
 com_downlink_Itransmit = 330E-3; % 730mA
 com_downlink_Ityp = 100E-3; % 80mA
 
-com_beacon_Vcc = 7.4;
+com_beacon_Vcc = 7.15;
 com_beacon_Itransmit = 85E-3; % 85 mA
 com_beacon_Ityp = 0; % The beacon is now part of the normal radio
 com_beacon_length = 2; % 2 seconds
